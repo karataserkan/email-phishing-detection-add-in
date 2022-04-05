@@ -69,10 +69,36 @@ class Sender extends React.Component{
     }
 
     componentDidMount(){
-      this.getSender();
-      this.internetHeaders();
+      this.getData();
+      //this.getSender();
+      //this.internetHeaders();
     }
 
+    getData = async () => {
+      const requestOptions = {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            'Sender':{
+              'email':Office.context.mailbox.item.from.emailAddress,
+              'name':Office.context.mailbox.item.sender.displayName
+            },
+            'Profile':{
+              'email':Office.context.mailbox.userProfile.emailAddress,
+              'name':Office.context.mailbox.userProfile.displayName
+            }
+          })
+      };
+      fetch('http://localhost:8344/analyses/sender', requestOptions)
+        .then(response => response.json())
+        .then(data => {
+          this.setState(data);
+          console.log(data);
+          this.progBar(data.senderScore, "bar_1");
+          this.progBar(data.senderScore, "bar_4");
+          this.props.onSenderScore(data.senderScore);
+        });
+    }
     //fetches sender's display name and email address
     getSender = async () => {
       
@@ -218,7 +244,7 @@ class Sender extends React.Component{
       }
 
       //Giving colour to percent bar based on percent score.
-      progBar = async (c, text) => {
+      progBar(c, text){
         var elem = document.getElementById(text);
         var width = c;
         elem.style.width = "100%";
@@ -234,15 +260,15 @@ class Sender extends React.Component{
       }
 
       //Evaluation of the attributes percent scores
-      totEvaluation = async (a) => {
+      totEvaluation(a) {
         var value = a
         let self = this;
         var roundedScore = value.toFixed(0);
         self.setState({
           totVal: roundedScore,
         });
-        self.progBar(roundedScore, "bar_4");
-        self.props.onSenderScore(roundedScore);    
+        this.progBar(roundedScore, "bar_4");
+        this.props.onSenderScore(roundedScore);    
       }
     
     render(){
